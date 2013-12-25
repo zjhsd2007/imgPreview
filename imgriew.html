@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <style type="text/css">
+        .view {width:100px;height:100px;border:1px solid red; text-align: center;}
+        .view em{height:100%;width:0;}
+        .view img {max-height: 100px;max-width: 100px;}
+        .dis_ib_vm,.view img{display: inline-block; *display:inline; *zoom:1; vertical-align:middle;}
+    </style>
+</head>
+<body>
+<h1>图片上传前在本地预览</h1>
+<input type="file" id="uploadImg" data-param="{change:change}"/><div id="view" class="view"><em class="dis_ib_vm"></em></div>
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script type="text/javascript">
+    (function($){
+        $.fn.imgPreivew = function(opts){
+            var param = $(this).data('param'),
+                set = $.extend({
+                view:'',
+                //maxWidth和maxHeight是针对IE6的，
+                maxWidth:100,
+                maxHeight:100,
+                change:function(){}
+            },opts||{},param ? eval('('+param+')'):{});
+            var $view = $(set.view),$img = $view.find('img'),reader,mw = set.maxWidth,mh=set.maxHeight, w, h,rw,rh;
+            var isIE6 = !window.XMLHttpRequest;
+            //ie6不支持max-width和max-height，所以这里需要为IE6加一个等比缩放的函数，
+            //其它浏览器可以直接在样式里控制图片的max-width和max-height来达到等比缩放的目的
+            var zoomImg = function(img){
+                    img.removeAttribute('width');
+                    img.removeAttribute('height');
+                    w = img.offsetWidth;
+                    h=img.offsetHeight;
+                    if(w > mw || h > mh){
+                        rw = w/mw;
+                        rh = h/mh;
+                        if(rw > rh){
+                            img.width = mw;
+                        }else{
+                            img.height = mh;
+                        };
+                    };
+                };
+            $img.length === 0 && $view.append($img = $(document.createElement('img')).hide());
+            //ie7会下执行两次load函数，未找到解决办法
+            $img.on('load',function(){
+                isIE6 && zoomImg(this);
+                set.change(this);
+            });
+            $(this).on('change',function(){
+                $img.show();
+                if(this.files && this.files[0]){
+                    reader = new FileReader();
+                    reader.onload = function(evt){$img.attr('src',evt.target.result);}
+                    reader.readAsDataURL(this.files[0]);
+                }else{
+                    this.select();
+                    $img.attr('src',document.selection.createRange().text)
+                };
+            });
+
+        };
+
+         $('#uploadImg').imgPreivew({view:'#view'});
+
+        function change(){
+            alert(1223);
+        }
+    })(jQuery);
+</script>
+
+</body>
+</html>
